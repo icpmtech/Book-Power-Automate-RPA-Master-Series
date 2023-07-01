@@ -1,1 +1,44 @@
+# Read a text file  to extract the available phone numbers and emails from.
+File.ReadTextFromFile.ReadText File: $'''C:\\Users\\pedro.mourao.martins\\OneDrive - Claranet Limited\\RPA Book\\Flows\\Invoices\\Demo Read Text Files and Get the Numbers and Emails\\CustomerData.txt''' Encoding: File.TextFileEncoding.UTF8 Content=> FileContents
+# The first 'Recognize entities in text' action extracts all the phone numbers from the provided text and stores the results (values and original values) in a datatable.
+Text.RecognizeEntitiesInText Text: FileContents Mode: Text.RecognizerMode.PhoneNumber Language: Text.RecognizerLanguage.English RecognizedEntities=> RecognizedPhoneNumbers
+# The second 'Recognize entities in text' action extracts all the emails from the provided text and stores the results (values and original values) in a datatable.
+Text.RecognizeEntitiesInText Text: FileContents Mode: Text.RecognizerMode.Email Language: Text.RecognizerLanguage.English RecognizedEntities=> RecognizedEmails
+# The value columns for both datatables are stored in separate lists for emails and phone numbers.
+Variables.RetrieveDataTableColumnIntoList DataTable: RecognizedPhoneNumbers ColumnNameOrIndex: $'''Value''' ColumnAsList=> RecognizedPhoneNumbersList
+Variables.RetrieveDataTableColumnIntoList DataTable: RecognizedEmails ColumnNameOrIndex: $'''Value''' ColumnAsList=> RecognizedEmailsList
+# The flow checks whether at least one phone number has been extracted. If not, it adds an appropriate message to the phone numbers list that will be displayed later to the users.
+IF RecognizedPhoneNumbers.RowsCount = 0 THEN
+    Variables.AddItemToList Item: $'''No phone number found in the given text. ''' List: RecognizedPhoneNumbersList
+END
+# The flow checks whether at least one email has been extracted. If not, it adds an appropriate message to the emails list that will be displayed later to the users.
+IF RecognizedEmails.RowsCount = 0 THEN
+    Variables.AddItemToList Item: $'''No email found in the given text. ''' List: RecognizedEmailsList
+END
+# Launch a Excel Instance
+Excel.LaunchExcel.LaunchUnderExistingProcess Visible: True Instance=> ExcelInstance
+# Add new worsheet
+Excel.AddWorksheet Instance: ExcelInstance Name: $'''Customers''' WorksheetPosition: Excel.WorksheetPosition.First
+# Read all recognize emails 
+LOOP FOREACH CurrentItem IN RecognizedEmails
+    # Get first avaible row in the Excel Instance colunm A
+    Excel.GetFirstFreeRowOnColumn Instance: ExcelInstance Column: $'''A''' FirstFreeRowOnColumn=> FirstFreeRowOnColumn
+    # Write the email to excel 
+    Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: CurrentItem Column: $'''A''' Row: FirstFreeRowOnColumn
+    # Save the excel
+    Excel.SaveExcel.Save Instance: ExcelInstance
+END
+# Read all recognize phone numbers
+LOOP FOREACH CurrentItem IN RecognizedPhoneNumbers
+    /# Get first avaible row in the Excel Instance colunm C
+#/
+    Excel.GetFirstFreeRowOnColumn Instance: ExcelInstance Column: $'''C''' FirstFreeRowOnColumn=> FirstFreeRowOnColumn
+    # Write to avaible row in colunm C
+    Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: CurrentItem Column: 3 Row: FirstFreeRowOnColumn
+    # Save the excel
+    Excel.SaveExcel.Save Instance: ExcelInstance
+END
+# Close the Excel abd save the data
+Excel.CloseExcel.CloseAndSaveAs Instance: ExcelInstance DocumentFormat: Excel.ExcelFormat.FromExtension DocumentPath: $'''C:\\Users\\pedro.mourao.martins\\OneDrive - Claranet Limited\\RPA Book\\Flows\\Invoices\\Demo Read Text Files and Get the Numbers and Emails\\CustomerData.xls'''
+
 
