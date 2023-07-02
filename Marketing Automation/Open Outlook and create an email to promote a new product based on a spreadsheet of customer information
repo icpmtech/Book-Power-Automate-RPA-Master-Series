@@ -1,1 +1,13 @@
+Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: $'''C:\\Users\\migue\\Documents\\Book\\DemoSendEmail\\CustomersList.xlsx''' Visible: True ReadOnly: False Instance=> ExcelInstance
+Outlook.Launch Instance=> OutlookInstance
+Excel.ReadFromExcel.ReadAllCells Instance: ExcelInstance ReadAsText: False FirstLineIsHeader: False RangeValue=> ExcelData
+LOOP FOREACH CurrentItem IN ExcelData
+    Text.CropText.CropTextBeforeFlag Text: CurrentItem ToFlag: $''',''' IgnoreCase: False CroppedText=> CroppedText IsFlagFound=> IsFlagFound
+    IF IsNotEmpty(CroppedText) THEN
+        Outlook.SendEmailThroughOutlook.SendEmail Instance: OutlookInstance Account: $'''miguelrox@msn.com''' SendTo: CroppedText Subject: $'''New ebook''' Body: $'''New ebook''' IsBodyHtml: False
+        WAIT 5
+    END
+END
+Outlook.Close Instance: OutlookInstance
+Excel.CloseExcel.Close Instance: ExcelInstance
 
