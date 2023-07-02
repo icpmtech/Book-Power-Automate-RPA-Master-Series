@@ -1,1 +1,13 @@
+Folder.GetFiles Folder: $'''C:\\Users\\migue\\Documents\\Book\\Words''' FileFilter: $'''*.docx''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+LOOP FOREACH CurrentItem IN Files
+    Scripting.RunPowershellScript Script: $'''#Creates a Word-Object
+$word = New-Object -ComObject Word.Application
+$word.Visible = $false
+$doc = $word.Documents.Open(\"%CurrentItem%\")
+#Creates the PDF file
+$name = ($doc.FullName).replace(\'docx\', \'pdf\')
+$doc.SaveAs($name, 17)
+$doc.Close()
+$word.Quit()''' ScriptOutput=> PowershellOutput
+END
 
