@@ -1,1 +1,17 @@
+# This next action get values in a text fie and put it in a list variable
+File.ReadTextFromFile.ReadTextAsList File: $'''C:\\Users\\migue\\Documents\\Sites\\sites.txt''' Encoding: File.TextFileEncoding.UTF8 Contents=> FileContents
+LOOP FOREACH CurrentItem IN FileContents
+    IF IsNotEmpty(CurrentItem.IsEmpty) THEN
+        Folder.GetSpecialFolder SpecialFolder: Folder.SpecialFolder.DesktopDirectory SpecialFolderPath=> DesktopPath
+        WebAutomation.LaunchEdge.LaunchEdge Url: CurrentItem WindowState: WebAutomation.BrowserWindowState.Maximized ClearCache: False ClearCookies: False WaitForPageToLoadTimeout: 60 Timeout: 60 BrowserInstance=> Browser
+                ON ERROR REPEAT 1 TIMES WAIT 2
+                END
+        WebAutomation.TakeScreenshot.TakeScreenshotSaveToFile BrowserInstance: Browser File: $'''%DesktopPath%\\ScreenShot.png''' FileFormat: WebAutomation.FileFormat.Png
+        WebAutomation.CloseWebBrowser BrowserInstance: Browser
+        File.RenameFiles.RenameAddDateOrTime Files: $'''%DesktopPath%\\ScreenShot.png''' DateTimeToAdd: File.DateTimeToAdd.Current DateTimePosition: File.AddTextPosition.AfterName DateTimeSeparator: File.Separator.Dash DateTimeFormat: $'''yyyy-MM-dd@hh-mm''' IfFileExists: File.IfExists.DoNothing RenamedFiles=> RenamedFiles
+        Display.ShowMessageDialog.ShowMessage Title: $'''Screenshot taken!''' Message: $'''The screenshot is stored at:
+
+%RenamedFiles[0]%''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: True ButtonPressed=> ButtonPressed2
+    END
+END
 
