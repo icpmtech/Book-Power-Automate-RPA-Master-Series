@@ -1,0 +1,19 @@
+
+FUNCTION Main_copy GLOBAL
+    WebAutomation.LaunchChrome.LaunchChrome Url: $'''https://sports.yahoo.com/odds/''' WindowState: WebAutomation.BrowserWindowState.Maximized ClearCache: False ClearCookies: False WaitForPageToLoadTimeout: 60 Timeout: 60 BrowserInstance=> Browser
+    Variables.GenerateRandomNumber.RandomNumber MinimumValue: 100 MaximumValue: 15000 RandomNumber=> file_name
+    SET fileLocalization TO $'''%DIR%%file_name%.jpg'''
+    WebAutomation.TakeScreenshot.TakeScreenshotSaveToFile BrowserInstance: Browser File: fileLocalization FileFormat: WebAutomation.FileFormat.Jpg
+    WebAutomation.CloseWebBrowser BrowserInstance: Browser
+    CALL ExtractDataFromSnapshotsDIR
+END FUNCTION
+
+FUNCTION ExtractDataFromSnapshotsDIR GLOBAL
+    IF (File.IfFile.Exists File: fileLocalization) THEN
+        Folder.GetFiles Folder: DIR FileFilter: $'''*.jpg''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+        File.Delete Files: $'''%fileLocalization%.jpg'''
+        OCR.ExtractTextWithOCR.ExtractTextFromFileWithWindowsOcr ImageFile: fileLocalization WindowsOcrLanguage: OCR.WindowsOcrLanguage.English ImageWidthMultiplier: 1 ImageHeightMultiplier: 1 OcrText=> OcrText
+        File.WriteText File: $'''%DIR%%file_name%.txt''' TextToWrite: OcrText AppendNewLine: False IfFileExists: File.IfFileExists.Overwrite Encoding: File.FileEncoding.Unicode
+        CALL ImportToSQLDatabase
+    END
+END FUNCTION
